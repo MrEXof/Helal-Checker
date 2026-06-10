@@ -109,7 +109,7 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
 /* RESULT */
 .result-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08);margin-bottom:12px;display:none}
 .result-card.on{display:block}
-.verdict-band{display:flex;align-items:center;justify-content:space-between;padding:16px;gap:14px}
+.verdict-band{display:flex;align-items:center;justify-content:space-between;padding:16px}
 .verdict-band.helal{background:var(--green-bg)}
 .verdict-band.suphelı{background:var(--amber-bg)}
 .verdict-band.haram{background:var(--red-bg)}
@@ -120,12 +120,8 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
 .v-label.suphelı{color:var(--amber)}
 .v-label.haram{color:var(--red)}
 .v-desc{font-size:12px;color:#6B7280;margin-top:2px}
-.v-toggle-btn{background:rgba(0,0,0,0.06);border:none;color:#374151;font-size:11px;font-weight:700;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background 0.1s}
-.v-toggle-btn:active{background:rgba(0,0,0,0.12)}
-
-/* GİZLENEBİLİR ALAN KAPLAYICI */
-.details-container{display:block}
-
+.v-toggle-btn{background:rgba(0,0,0,0.05);border:none;color:#4B5563;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all 0.1s}
+.v-toggle-btn:active{background:rgba(0,0,0,0.1)}
 .r-product{font-size:14px;font-weight:600;color:#374151;padding:12px 16px 0}
 .r-extracted{background:var(--brand-bg);margin:10px 16px 0;border-radius:10px;padding:9px 11px;display:none}
 .r-ext-label{font-size:9px;font-weight:800;color:var(--brand-mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
@@ -257,15 +253,15 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
           <div class="v-desc" id="v-desc"></div>
         </div>
       </div>
-      <button class="v-toggle-btn" id="v-toggle-btn" onclick="toggleDetails()">👁️ Detayları Gizle</button>
+      <button class="v-toggle-btn" id="v-toggle" onclick="toggleDetails()">Detayları Gizle</button>
     </div>
-
-    <div class="details-container" id="details-container">
-      <div class="r-product" id="r-product"></div>
-      <div class="r-extracted" id="r-extracted">
-        <div class="r-ext-label">OCR ile okunan içerik</div>
-        <div class="r-ext-text" id="r-ext-text"></div>
-      </div>
+    
+    <div class="r-product" id="r-product"></div>
+    <div class="r-extracted" id="r-extracted">
+      <div class="r-ext-label">OCR ile okunan içerik</div>
+      <div class="r-ext-text" id="r-ext-text"></div>
+    </div>
+    <div id="details-wrapper">
       <div class="r-summary" id="r-summary"></div>
       <div class="ing-list">
         <div class="ing-list-title">İçindekiler Analizi</div>
@@ -287,7 +283,7 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
 <script>
 let scanOn=false, diet='standard', imgB64=null, imgMime=null;
 let hist=[];
-let isDetailsOpen = true; // Detay görünürlük takibi için global değişken
+let detailsVisible=true;
 try{hist=JSON.parse(localStorage.getItem('hh')||'[]')}catch(e){hist=[]}
 
 const dietMeta={
@@ -334,9 +330,6 @@ function startScanner(){
     fetchProduct(code);
   });
 }
-String.prototype.trToLower = function () {
-  return this.substring(0).replace(/I/g, 'ı').replace(/İ/g, 'i').toLowerCase();
-};
 function stopScanner(){
   try{Quagga.stop()}catch(e){}
   scanOn=false;
@@ -384,7 +377,7 @@ async function ocrThenAnalyze(b64,mime){
         model:"claude-sonnet-4-20250514",max_tokens:800,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:mime,data:b64}},
-          {type:"text",text:"This is a food product label. Focus STRICTLY and ONLY on the ingredients list (Zutaten, İçindekiler, Ingrédients). Ignore marketing texts, badges, weights, or nutrition values. Extract ONLY the ingredients list text. Return just the raw ingredient text. If multiple languages present, return the most complete version. No introduction or explanation."}
+          {type:"text",text:"This is a food product label. Focus STRICLY on the ingredients list (Zutaten, İçindekiler, Ingrédients). IGNORE marketing text, weights, or nutrition tables. Extract ONLY the ingredients list text. Return just the raw ingredient text. If multiple languages present, return the most complete version. No introduction or explanation."}
         ]}]
       })
     });
@@ -500,26 +493,25 @@ Hanefi kuralları:
   }
 }
 
-// DETAY GİZLE / GÖSTER TETİKLEYİCİSİ
 function toggleDetails() {
-  const container = document.getElementById('details-container');
-  const btn = document.getElementById('v-toggle-btn');
-  if (isDetailsOpen) {
-    container.style.display = 'none';
-    btn.textContent = '👁️ Detayları Göster';
-    isDetailsOpen = false;
+  const wrapper = document.getElementById('details-wrapper');
+  const btn = document.getElementById('v-toggle');
+  if (detailsVisible) {
+    wrapper.style.display = 'none';
+    btn.textContent = 'Detayları Göster';
+    detailsVisible = false;
   } else {
-    container.style.display = 'block';
-    btn.textContent = '👁️ Detayları Gizle';
-    isDetailsOpen = true;
+    wrapper.style.display = 'block';
+    btn.textContent = 'Detayları Gizle';
+    detailsVisible = true;
   }
 }
 
 function showResult(name, r, extracted){
-  // Her yeni aramada detay alanı açık ve görünür başlar
-  isDetailsOpen = true;
-  document.getElementById('details-container').style.display = 'block';
-  document.getElementById('v-toggle-btn').textContent = '👁️ Detayları Gizle';
+  // Detayları her yeni aramada gizli başlat
+  detailsVisible = false;
+  document.getElementById('details-wrapper').style.display = 'none';
+  document.getElementById('v-toggle').textContent = 'Detayları Göster';
 
   const v=r.genel_karar;
   const icons={helal:'✅',suphelı:'⚠️',haram:'❌'};
@@ -548,29 +540,18 @@ function showResult(name, r, extracted){
   const list=document.getElementById('ing-list');
   list.innerHTML='';
   const tl={helal:'Helal',suphelı:'Şüpheli',haram:'Haram'};
-
-  // AKILLI SIRALAMA: HARAM ve ŞÜPHELİ maddeler EN ÜSTTE dursun
-  let rawIngredients = r.icerikler || [];
-  let harams = [];
-  let suphelis = [];
-  let helals = [];
-
-  rawIngredients.forEach(i => {
-    let kararTemiz = (i.karar || 'helal').trToLower();
-    if (kararTemiz === 'haram') {
-      harams.push(i);
-    } else if (kararTemiz === 'suphelı' || kararTemiz === 'şüpheli') {
-      suphelis.push(i);
-    } else {
-      helals.push(i);
-    }
-  });
-
-  // Hepsini birleştirip sıralı liste yapıyoruz (Önce haram, sonra şüpheli, en son helal)
-  let sortedIngredients = [...harams, ...suphelis, ...helals];
+  
+  // HARAM ve ŞÜPHELİ maddeleri EN ÜSTE taşımak için akıllı sıralama
+  let sortedIngredients = [];
+  if (r.icerikler && Array.isArray(r.icerikler)) {
+    const harams = r.icerikler.filter(i => (i.karar || '').toLowerCase() === 'haram');
+    const suphelis = r.icerikler.filter(i => (i.karar || '').toLowerCase() === 'suphelı' || (i.karar || '').toLowerCase() === 'şüpheli');
+    const helals = r.icerikler.filter(i => (i.karar || '').toLowerCase() === 'helal');
+    sortedIngredients = [...harams, ...suphelis, ...helals];
+  }
 
   sortedIngredients.forEach(i=>{
-    const k=(i.karar||'helal').trToLower();
+    const k=i.karar||'helal';
     const row=document.createElement('div');
     row.className='ing-row';
     row.innerHTML=`<div class="ing-info"><div class="ing-name">${i.isim}</div>${i.neden?`<div class="ing-why">${i.neden}</div>`:''}</div><span class="ing-tag ${k}">${tl[k]||k}</span>`;
