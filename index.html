@@ -7,7 +7,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Helal Tarayıcı">
 <title>Helal Tarayıcı</title>
+<!-- Barkod Okuyucu Kütüphanesi -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<!-- Görselden Yazı Okuyan Yerel Yapay Zeka (OCR) Kütüphanesi -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -16,7 +19,6 @@
   --green:#15803D;--green-bg:#DCFCE7;
   --amber:#B45309;--amber-bg:#FEF9C3;
   --red:#BE123C;--red-bg:#FFF1F2;
-  --pink:#BE185D;--pink-bg:#FCE7F3;
   --bg:#F5F3FF;--card:#fff;--border:#F3F0FF;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:#111827;min-height:100vh;padding-bottom:32px}
@@ -28,7 +30,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 
 .main{padding:14px;max-width:480px;margin:0 auto}
 
-/* COMPACT PREFERENCE CHECKBOXES */
+/* TERCİH KUTUCUKLARI */
 .pref-container {
   background: #fff;
   border-radius: 14px;
@@ -56,26 +58,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
   color: #374151;
   cursor: pointer;
 }
-.pref-label input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--brand);
-  cursor: pointer;
-}
+.pref-label input {width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer;}
 
-/* SCAN CARD */
+/* TARAMA ALANI */
 .scan-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(91,33,182,.08);margin-bottom:12px}
 .tabs{display:flex;border-bottom:1.5px solid #F3F0FF}
-.tab{flex:1;padding:11px 4px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;color:#9CA3AF;border:none;background:transparent;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:all .15s}
+.tab{flex:1;padding:12px 4px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;color:#9CA3AF;border:none;background:transparent;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:all .15s}
 .tab.on{color:var(--brand);border-bottom-color:var(--brand)}
 .panel{display:none;padding:16px}
 .panel.on{display:block}
 
-/* SCANNER */
+/* BARKOD CANLI KAMERA */
 #scanner-box{position:relative;background:#0f0f14;border-radius:13px;overflow:hidden;aspect-ratio:4/3;margin-bottom:10px;display:none}
-#scanner-box video{width:100%;height:100%;object-fit:cover}
-#interactive{width:100%;height:100%}
-#interactive video{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+#scanner-box video{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
 #scanner-box canvas{position:absolute;inset:0;width:100%;height:100%}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.45) 100%);z-index:10}
 .frame{width:220px;height:90px;position:relative}
@@ -88,35 +83,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 @keyframes beam{0%,100%{top:0;opacity:.9}50%{top:calc(100% - 2px);opacity:.9}}
 .scanner-hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:rgba(255,255,255,.65);font-size:12px;z-index:11}
 
-/* INPUTS & MANUAL */
+/* İÇERİK FOTOĞRAFLAMA */
+.photo-drop{background:#FAFAFE;border:2px dashed #C4B5FD;border-radius:14px;padding:32px 16px;text-align:center;cursor:pointer;transition:all .15s}
+.photo-drop:active{background:#F5F3FF;border-color:var(--brand)}
+.drop-icon{font-size:42px;margin-bottom:10px;line-height:1}
+.drop-title{font-size:15px;font-weight:700;color:#374151;margin-bottom:4px}
+.drop-hint{font-size:12px;color:#6B7280;line-height:1.4;padding:0 10px}
+#photo-file{display:none}
+
+/* SORGULAMA VE GİRDİ */
 .inp-label{font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
-.inp-row{display:flex;gap:8px;margin-bottom:14px}
+.inp-row{display:flex;gap:8px;margin-bottom:4px}
 .inp{flex:1;padding:12px 13px;border:1.5px solid #E9E7F8;border-radius:11px;font-size:16px;outline:none;color:#111827;background:#FAFAFE;-webkit-appearance:none}
 .inp:focus{border-color:var(--brand);background:#fff}
-textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-height:1.5;margin-bottom:10px;display:block}
 
-/* BUTTONS */
 .btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:14px;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;-webkit-appearance:none;transition:opacity .15s,transform .1s}
 .btn:active{opacity:.85;transform:scale(.98)}
 .btn.purple{background:var(--brand);color:#fff}
-.btn.pink{background:#9333EA;color:#fff}
 
-/* LOADING */
+/* YÜKLENİYOR VE POPUP */
 .load-card{background:#fff;border-radius:18px;padding:28px 20px;text-align:center;box-shadow:0 2px 12px rgba(91,33,182,.08);margin-bottom:12px;display:none}
 .load-card.on{display:block}
 .spin{width:38px;height:38px;border:3px solid var(--brand-bg);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .load-title{font-size:15px;font-weight:700;color:var(--brand);margin-bottom:3px}
-.load-sub{font-size:13px;color:#9CA3AF}
+.load-sub{font-size:13px;color:#9CA3AF;line-height:1.4}
 
-/* ERROR & POPUP BANNER */
 .err-card{background:var(--red-bg);border:1px solid #FECDD3;border-radius:14px;padding:13px 15px;margin-bottom:12px;color:var(--red);font-size:13px;line-height:1.5;display:none}
 .err-card.on{display:block}
-
 .info-popup{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:14px;padding:13px 15px;margin-bottom:12px;color:#1E40AF;font-size:13px;line-height:1.5;display:none}
 .info-popup.on{display:block}
 
-/* RESULT CARD */
+/* SONUÇ KARTI */
 .result-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08);margin-bottom:12px;display:none}
 .result-card.on{display:block}
 .verdict-band{display:flex;align-items:center;gap:14px;padding:16px}
@@ -133,8 +131,23 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
 .r-product{font-size:15px;font-weight:700;color:#111827;padding:14px 16px 0}
 .r-summary{font-size:13px;color:#4B5563;line-height:1.6;padding:10px 16px 12px;border-bottom:1px solid #F3F0FF}
 
+/* ÇEKMECE BAŞLIĞI VE DETAY ALANI */
 .ing-list{padding:14px 16px}
-.ing-list-title{font-size:11px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;border-bottom:1px solid #F3F0FF;padding-bottom:4px}
+.ing-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid #F3F0FF;padding-bottom:6px}
+.ing-list-title{font-size:11px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.6px;margin:0}
+.drawer-toggle{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-bg);border:none;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s}
+.drawer-toggle:active{transform:scale(.95)}
+
+/* Pürüzsüz animasyonlu çekmece içeriği */
+.drawer-content {
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+.drawer-content.collapsed {
+  max-height: 0px !important;
+}
+
 .ing-row{display:flex;flex-direction:column;padding:10px 0;border-bottom:1px solid #FAFAFF}
 .ing-row:last-child{border-bottom:none}
 .ing-top-line{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px}
@@ -145,15 +158,12 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
 .ing-tag.haram{background:var(--red-bg);color:var(--red)}
 .ing-why{font-size:12px;color:#4B5563;line-height:1.4;background:#FAFAFE;padding:6px 10px;border-radius:8px;margin-top:2px}
 
-/* HISTORY CLEAN LOOK */
+/* GEÇMİŞ LİSTESİ */
 .hist-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(91,33,182,.08);margin-bottom:12px}
 .hist-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #F3F0FF}
 .hist-head-title{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px}
 .hist-clear{font-size:12px;color:#7C3AED;background:none;border:none;cursor:pointer;text-decoration:underline;padding:0}
-.hist-list-container{display:flex;flex-direction:column}
-.hist-row{display:flex;align-items:center;padding:12px 16px;gap:12px;border-bottom:1px solid #FAFAFF;cursor:pointer;transition:background .1s}
-.hist-row:active{background:#F9F8FF}
-.hist-row:last-child{border-bottom:none}
+.hist-row{display:flex;align-items:center;padding:12px 16px;gap:12px;border-bottom:1px solid #FAFAFF;cursor:pointer}
 .hist-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .hist-dot.helal{background:#22C55E}
 .hist-dot.suphelı{background:#EAB308}
@@ -169,14 +179,14 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
   <div class="header-row">
     <div>
       <div class="header-title">🌙 Helal Tarayıcı</div>
-      <div class="header-sub">Hanefi Mezhebi Standartları Engine</div>
+      <div class="header-sub">Yapay Zeka Destekli Çift Kameralı Analiz Motoru</div>
     </div>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- COMPACT CHECKS INSTEAD OF BIG TITLES -->
+  <!-- TERCİH SEÇENEKLERI -->
   <div class="pref-container">
     <span class="pref-title">Tercihler:</span>
     <label class="pref-label">
@@ -187,14 +197,13 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
     </label>
   </div>
 
-  <!-- SCAN CARD -->
   <div class="scan-card">
     <div class="tabs">
       <button class="tab on" onclick="goTab('barcode')">📷 Barkod Tarat</button>
-      <button class="tab" onclick="goTab('photo')">✍️ Elle Metin Gir</button>
+      <button class="tab" onclick="goTab('photo')">📸 İçindekiler Fotoğrafla</button>
     </div>
 
-    <!-- BARCODE TAB -->
+    <!-- 1. SEKME: BARKOD TARAMA -->
     <div id="tab-barcode" class="panel on">
       <div id="scanner-box">
         <div id="interactive"></div>
@@ -210,7 +219,7 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
       <button class="btn purple" id="scan-btn" onclick="toggleScanner()">📷 &nbsp; Kamerayı Başlat</button>
       
       <div style="margin-top: 16px;">
-        <span class="inp-label">Barkod Numarası Yazarak Sorgula</span>
+        <span class="inp-label">Veya Barkod No Yazın</span>
         <div class="inp-row">
           <input type="number" class="inp" id="barcode-inp" placeholder="8712345678901" inputmode="numeric">
           <button class="btn purple" onclick="lookupBarcode()" style="width:auto;padding:0 18px;border-radius:11px">Sorgula</button>
@@ -218,26 +227,28 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
       </div>
     </div>
 
-    <!-- MANUAL TEXT TAB -->
+    <!-- 2. SEKME: İÇİNDEKİLER FOTOĞRAFLAMA (OCR YAPAY ZEKA) -->
     <div id="tab-photo" class="panel">
-      <span class="inp-label">İçindekiler / Maddeler Metni</span>
-      <textarea class="inp" id="ing-text" placeholder="Örn: Water, sugar, gelatin, E471, carmine, lecithin, citric acid..."></textarea>
-      <button class="btn pink" onclick="analyzeText()">Bileşen Analizini Başlat</button>
+      <div class="photo-drop" onclick="document.getElementById('photo-file').click()">
+        <div class="drop-icon">📸</div>
+        <div class="drop-title">Paket Arkası Yazısını Çek</div>
+        <div class="drop-hint">Kameranızı açıp içindekiler/ingredients kısmını net bir şekilde fotoğraflayın. Yapay zeka tüm maddeleri otomatik çıkartıp Hanefi fıkhına göre inceler.</div>
+      </div>
+      <input type="file" id="photo-file" accept="image/*" capture="environment" onchange="processImage(event)">
     </div>
   </div>
 
-  <!-- LOADING -->
+  <!-- UYARILAR VE YÜKLENİYOR CARD -->
   <div class="load-card" id="load-card">
     <div class="spin"></div>
     <div class="load-title" id="load-title">İşleniyor</div>
     <div class="load-sub" id="load-sub">Lütfen bekleyin...</div>
   </div>
 
-  <!-- INFO & ERRORS -->
   <div class="info-popup" id="info-popup"></div>
   <div class="err-card" id="err-card"></div>
 
-  <!-- RESULTS (COMPREHENSIVE MULTI-COMPONENTS LIST) -->
+  <!-- SONUÇ EKRANI -->
   <div class="result-card" id="result-card">
     <div class="verdict-band" id="v-band">
       <div class="v-icon" id="v-icon"></div>
@@ -248,74 +259,72 @@ textarea.inp{width:100%;resize:vertical;min-height:110px;font-size:14px;line-hei
     </div>
     <div class="r-product" id="r-product"></div>
     <div class="r-summary" id="r-summary"></div>
+    
     <div class="ing-list">
-      <div class="ing-list-title" id="list-title-text">Üründeki Tüm Bileşenlerin Analizi</div>
-      <div id="ing-list"></div>
+      <div class="ing-header-row">
+        <h3 class="ing-list-title">Bileşen Analizi (Öncelikli Sıralama)</h3>
+        <button class="drawer-toggle" id="drawer-btn" onclick="toggleDrawer()">Detayları Gizle 🔼</button>
+      </div>
+      
+      <!-- Çekmece Alanı -->
+      <div class="drawer-content" id="drawer-container">
+        <div id="ing-list"></div>
+      </div>
     </div>
   </div>
 
-  <!-- HISTORY (CLEAN ROW LOOK) -->
+  <!-- GEÇMİŞ -->
   <div class="hist-card" id="hist-card" style="display:none">
     <div class="hist-head">
-      <div class="hist-head-title">Son Taratılan Ürünler</div>
-      <button class="hist-clear" onclick="clearHist()">Geçmişi Temizle</button>
+      <div class="hist-head-title">Son Taramalarınız</div>
+      <button class="hist-clear" onclick="clearHist()">Temizle</button>
     </div>
-    <div id="hist-list" class="hist-list-container"></div>
+    <div id="hist-list"></div>
   </div>
 
 </div>
 
 <script>
 let scanOn=false;
-let prefMode = 'standard'; // 'standard', 'vegan', 'vegetarian'
+let prefMode = 'standard'; 
 let hist=[];
 try{hist=JSON.parse(localStorage.getItem('hh')||'[]')}catch(e){hist=[]}
 
-// Detaylı Hanefi ve Diyet Veritabanı
 const haramRules = [
-  {keys: ['pork', 'domuz', 'schwein', 'porc', 'lard', 'swine'], name: 'Domuz ve Türevleri', why: 'Hanefi mezhebi ve tüm İslam fıkhına göre kesinlikle haramdır, hiçbir şekilde tüketilemez.'},
-  {keys: ['e120', 'carmine', 'karmin', 'cochineal', 'kosnil'], name: 'E120 (Karmin / Cochineal)', why: 'Böcek türevi bir renklendiricidir. Hanefi mezhebinde böcek yemek caiz olmadığından dolayı haram kabul edilir.'},
-  {keys: ['alcohol', 'alkol', 'ethanol', 'etanollu', 'wine', 'bira', 'sarap', 'liqueur'], name: 'Alkol / Etanol', why: 'Gıdaya haricen veya keyif verici amaçla eklenen alkol içeren tüm bileşenler Hanefi mezhebine göre haramdır.'},
-  {keys: ['pork gelatin', 'domuz jelatini'], name: 'Domuz Jelatini', why: 'Doğrudan necaset kaynağı olan hayvandan üretildiği için kesinlikle haramdır.'}
+  {keys: ['pork', 'domuz', 'schwein', 'porc', 'lard', 'swine'], name: 'Domuz ve Türevleri', why: 'Hanefi mezhebi ve tüm İslam fıkhına göre kesinlikle haramdır, tüketilmesi caiz değildir.'},
+  {keys: ['e120', 'carmine', 'karmin', 'cochineal', 'kosnil'], name: 'E120 (Karmin / Cochineal)', why: 'Böceklerden elde edilen kırmızı bir renklendiricidir. Hanefi fıkhında böcek tüketmek caiz olmadığından haram kabul edilir.'},
+  {keys: ['alcohol', 'alkol', 'ethanol', 'etanollu', 'wine', 'bira', 'sarap', 'liqueur'], name: 'Alkol / Etanol', why: 'Gıdaya dışarıdan eklenen veya keyif verici amaçla üretilen alkol türevleri Hanefi mezhebine göre haramdır.'},
+  {keys: ['pork gelatin', 'domuz jelatini'], name: 'Domuz Jelatini', why: 'Doğrudan haram ve necaset olan hayvandan üretildiği için kesinlikle haramdır.'}
 ];
 
 const supheliRules = [
-  {keys: ['e471', 'e472', 'mono- and di-glycerides', 'mono ve digliserit', 'digliserid'], name: 'E471 / E472 (Yağ Asitleri)', why: 'Bitkisel veya hayvansal (domuz/sığır) kökenli olabilir. Eğer ürünün üzerinde helal veya vegan logosu yoksa, hayvansal yağ riski taşıdığı için Hanefi mezhebine göre şüphelidir.'},
-  {keys: ['gelatin', 'jelatin', 'e441', 'gelatine'], name: 'Jelatin / E441', why: 'Sığır, balık veya domuzdan elde edilir. İslami usulle kesilmemiş sığır veya domuz olma ihtimali çok yüksek olduğundan, helal sertifikası yoksa Hanefi fıkhına göre şüphe barındırır.'},
-  {keys: ['pepsin', 'rennet', 'peynir mayasi', 'mayasi', 'rennin'], name: 'Hayvansal Peynir Mayası / Şırdan', why: 'Kesim şartı belirsiz hayvanlardan elde edilme riski nedeniyle güvenilir bir helal logosu yoksa şüpheli gruptadır.'},
-  {keys: ['e920', 'l-cysteine', 'sistein', 'cysteine'], name: 'E920 (L-Sistein)', why: 'İnsan saçı veya domuz kılından üretilme riski yüksektir. Sentetik veya bitkisel kökenli olduğu kanıtlanmadığı sürece şüphelidir.'},
-  {keys: ['aroma', 'flavour', 'natural flavour', 'flavor'], name: 'Aroma Vericiler', why: 'Aromaların sıvı formda tutulması veya çözülmesi için üretim aşamasında alkol (etanol) taşıyıcı kullanılma riski mevcuttur.'},
-  {keys: ['enzyme', 'enzim'], name: 'Enzimler', why: 'Mikrobiyal üretim değilse, kesim durumu belirsiz hayvan organlarından elde edilme riski taşır.'}
+  {keys: ['e471', 'e472', 'mono- and di-glycerides', 'mono ve digliserit', 'digliserid'], name: 'E471 / E472 (Yağ Asitleri)', why: 'Bitkisel veya hayvansal kaynaklı olabilir. Güvenilir bir Helal veya Vegan sertifikası yoksa, helal kesim olmayan hayvansal yağ riski nedeniyle Hanefi mezhebine göre şüphelidir.'},
+  {keys: ['gelatin', 'jelatin', 'e441', 'gelatine'], name: 'Jelatin / E441', why: 'Sığır, domuz veya balık kemiklerinden üretilir. Helal belgesi olmayan ürünlerde kesim şartı belirsiz sığır veya domuz riski yüksek olduğundan Hanefi fıkhına göre şüphelidir.'},
+  {keys: ['pepsin', 'rennet', 'peynir mayasi', 'mayasi', 'rennin'], name: 'Hayvansal Peynir Mayası / Şırdan', why: 'Kesim İslami usullere göre yapılmamış hayvanlardan elde edilme riski nedeniyle güvenilir bir amblem yoksa şüphelidir.'},
+  {keys: ['e920', 'l-cysteine', 'sistein', 'cysteine'], name: 'E920 (L-Sistein)', why: 'İnsan saçı, ördek tüyü veya domuz kılından üretilme riski taşır. Menşei bitkisel veya sentetik olarak kanıtlanmadıkça şüphelidir.'},
+  {keys: ['aroma', 'flavour', 'natural flavour', 'flavor'], name: 'Aroma Vericiler', why: 'Üretim aşamasında aromayı taşımak ve çözmek için alkol (etanol) bazlı çözücüler kullanılma ihtimali nedeniyle şüphelidir.'},
+  {keys: ['enzyme', 'enzim'], name: 'Enzimler', why: 'Mikrobiyal kaynaklı değilse, kesim durumu bilinmeyen hayvansal organlardan üretilme ihtimali vardır.'}
 ];
 
-// Temiz/Helal kabul edilen maddelerin neden açıklamaları
 const helalAçıklamalar = {
-  'water': 'Su: Doğal ve helaldir.',
-  'su': 'Su: Doğal ve helaldir.',
-  'sugar': 'Şeker: Bitkisel kökenli temel gıdadır, helaldir.',
-  'seker': 'Şeker: Bitkisel kökenli temel gıdadır, helaldir.',
-  'salt': 'Tuz: Mineraldir, helaldir.',
-  'tuz': 'Tuz: Mineraldir, helaldir.',
-  'lecithin': 'Lesitin: Genellikle soyadan (bitkisel) elde edilir. İstisnai olarak yumurtadan da üretilse helaldir.',
-  'lesitin': 'Lesitin: Soya veya bitkisel kaynaklıdır, temizdir.',
-  'citric acid': 'Sitrik Asit (E330): Limon tuzu olarak bilinir, bitkisel/mikrobiyal kökenlidir, helaldir.',
-  'sitrik asit': 'Sitrik Asit (E330): Bitkisel kaynaklı asitlik düzenleyicidir, helaldir.',
-  'flour': 'Un: Bitkisel tahıl ürünüdür, helaldir.',
-  'un': 'Un: Bitkisel tahıl ürünüdür, helaldir.',
-  'oil': 'Bitkisel Yağ: Tohumlardan elde edilen yağlar Hanefi fıkhına göre tamamen helaldir.',
-  'yag': 'Bitkisel Yağ: Hayvansal olmadığı sürece bitkisel yağlar temizdir.'
+  'water': 'Su: Doğal, temiz ve helaldir.', 'su': 'Su: Doğal, temiz ve helaldir.',
+  'sugar': 'Şeker: Bitkisel kökenli temel gıdadır, helaldir.', 'seker': 'Şeker: Bitkisel kökenli temel gıdadır, helaldir.',
+  'salt': 'Tuz: Mineral kaynaklıdır, helaldir.', 'tuz': 'Tuz: Mineral kaynaklıdır, helaldir.',
+  'lecithin': 'Lesitin (E322): %99 soyadan (bitkisel) elde edilir, Hanefi fıkhına göre temiz ve helaldir.',
+  'citric acid': 'Sitrik Asit (E330): Limon tuzu olarak bilinir, bitkisel/mikrobiyal kökenlidir, tüketimi helaldir.',
+  'sitrik asit': 'Sitrik Asit (E330): Bitkisel asitlik düzenleyicidir, helaldir.',
+  'flour': 'Un: Tahıl ürünüdür, helaldir.', 'un': 'Un: Tahıl ürünüdür, helaldir.',
+  'oil': 'Bitkisel Yağ: Tohumlardan elde edilen sıvı yağlar tamamen helaldir.',
+  'yag': 'Bitkisel Yağ: Hayvansal katı yağ karışımı olmadığı sürece bitkisel yağlar temizdir.'
 };
 
 function handlePrefChange(mode) {
   const chkVegan = document.getElementById('chk-vegan');
   const chkVeg = document.getElementById('chk-vegetarian');
-  
   if (mode === 'vegan' && chkVegan.checked) {
-    chkVeg.checked = false;
-    prefMode = 'vegan';
+    chkVeg.checked = false; prefMode = 'vegan';
   } else if (mode === 'vegetarian' && chkVeg.checked) {
-    chkVegan.checked = false;
-    prefMode = 'vegetarian';
+    chkVegan.checked = false; prefMode = 'vegetarian';
   } else {
     prefMode = 'standard';
   }
@@ -330,8 +339,7 @@ function goTab(t){
   if(t!=='barcode' && scanOn) stopScanner();
 }
 
-// BARKOD KAMERA MOTORU
-function toggleScanner(){scanOn?stopScanner():startScanner()}
+function toggleScanner()){scanOn?stopScanner():startScanner()}
 function startScanner(){
   document.getElementById('scanner-box').style.display='block';
   document.getElementById('scan-btn').innerHTML='⏹ &nbsp; Kamerayı Durdur';
@@ -340,13 +348,11 @@ function startScanner(){
     inputStream:{name:"Live",type:"LiveStream",target:document.querySelector('#interactive'),constraints:{facingMode:"environment"}},
     decoder:{readers:["ean_reader","ean_8_reader","code_128_reader","upc_reader"]}
   },function(err){
-    if(err){showErr("Kamera başlatılamadı. İzin verilmemiş olabilir.");stopScanner();return}
+    if(err){showErr("Kamera başlatılamadı. İzinleri kontrol edin.");stopScanner();return}
     Quagga.start();
   });
   Quagga.onDetected(function(r){
-    const code=r.codeResult.code;
-    stopScanner();
-    fetchProduct(code);
+    stopScanner(); fetchProduct(r.codeResult.code);
   });
 }
 function stopScanner(){
@@ -356,141 +362,165 @@ function stopScanner(){
   document.getElementById('scan-btn').innerHTML='📷 &nbsp; Kamerayı Başlat';
 }
 
-// OPEN FOOD FACTS SORGULAMA VE YEREL MOTOR KONTROLÜ
 async function fetchProduct(barcode){
-  showLoad("Ürün Aranıyor",`Barkod ${barcode} internetten sorgulanıyor...`);
+  showLoad("Veritabanı Aranıyor",`Barkod ${barcode} internetten kontrol ediliyor...`);
   hideResult(); hideErr(); hidePopup();
   try{
     const res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
     const d=await res.json();
     
-    // EĞER ÜRÜN OPEN FOOD FACTS VERİTABANINDA YOKSA VEYA İÇERİK METNİ BOŞSA:
     if(!d.product || (!d.product.ingredients_text_tr && !d.product.ingredients_text_en && !d.product.ingredients_text)){
-      const name = d.product && (d.product.product_name_tr || d.product.product_name_en || d.product.product_name) ? d.product.product_name : `Bilinmeyen Ürün (${barcode})`;
       hideLoad();
-      showPopup(`⚠️ Bu ürün internet veritabanında (Open Food Facts) bulunamadı veya içindekiler listesi eksik. Sistem otomatik olarak manuel yerel analize geçti. Lütfen paketin arkasındaki içindekiler metnini kopyalayıp yan sekmeye yapıştırın.`);
-      goTab('photo');
-      return;
+      showPopup(`⚠️ Bu ürün internet veritabanında bulunamadı veya içeriği boş. Sistem otomatik olarak yapay zeka ile fotoğraf okuma bölümüne geçti. Lütfen ambalajın arkasını çekin.`);
+      goTab('photo'); return;
     }
-    
-    const p=d.product;
-    const name=p.product_name_tr||p.product_name_en||p.product_name||`Barkod: ${barcode}`;
-    const ing=p.ingredients_text_tr||p.ingredients_text_en||p.ingredients_text||'';
-    
-    localAnalyze(name, ing);
+    const name=d.product.product_name_tr||d.product.product_name_en||d.product.product_name||`Barkodlu Ürün (${barcode})`;
+    const ing=d.product.ingredients_text_tr||d.product.ingredients_text_en||d.product.ingredients_text||'';
+    localAnalyze(name, ing, false); // İnternetten gelen saf içerik, ayıklama filtresine gerek yok
   }catch(e){
-    hideLoad();
-    showPopup("⚠️ İnternet veya bağlantı hatası oluştu. Ürün veritabanından çekilemediği için lütfen manuel metin analizi sekmesini kullanın.");
-    goTab('photo');
+    hideLoad(); showPopup("⚠️ Bağlantı hatası oluştu. Lütfen ürünün arkasını fotoğraflayarak yapay zeka analizini başlatın."); goTab('photo');
   }
 }
-
 function lookupBarcode(){
   const c=document.getElementById('barcode-inp').value.trim();
-  if(!c){showErr("Lütfen geçerli bir barkod numarası yazın.");return}
+  if(!c){showErr("Lütfen geçerli bir barkod yazın.");return}
   fetchProduct(c);
 }
 
-function analyzeText(){
-  const t=document.getElementById('ing-text').value.trim();
-  if(!t){showErr("Lütfen analiz edilecek bir içerik yazısı girin.");return}
-  localAnalyze("Manuel Girilen İçerik", t);
+// YAPAY ZEKA GÖRSEL METİN OKUMA MOTORU (OCR)
+async function processImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  showLoad("Yapay Zeka Okuma Yapıyor", "Görseldeki kelimeler taranıyor ve içindekiler kısmı ayıklanıyor. Lütfen bekleyin...");
+  hideResult(); hideErr(); hidePopup();
+  
+  try {
+    const worker = await Tesseract.createWorker('eng+tur');
+    const ret = await worker.recognize(file);
+    const text = ret.data.text;
+    await worker.terminate();
+    
+    if(!text || text.trim().length < 6) {
+      hideLoad();
+      showErr("Fotoğraftaki yazılar net okunamadı. Lütfen ışıklı bir ortamda ambalajı tekrar çekin.");
+      return;
+    }
+    
+    localAnalyze("Görselden Okunan İçerik", text, true); // true: Kameradan geldi, akıllı ayıklama yapılacak
+  } catch (error) {
+    hideLoad();
+    showErr("Yapay zeka motoru çalışırken bir hata oluştu. Lütfen tekrar deneyin.");
+  }
 }
 
-// GELİŞMİŞ YEREL MOTOR: TEK TEK TÜM MADDELERİ LİSTELEME VE KOŞULLARI GÖSTERME
-function localAnalyze(productName, ingredientsText){
-  showLoad("Analiz Ediliyor","Bileşenler tek tek ayrıştırılıyor...");
+// MERKEZİ ANALİZ VE SIRALAMA MOTORU
+function localAnalyze(productName, rawText, applyOcrFilter){
+  showLoad("Fıkıh Motoru Analizde","Bileşenler Hanefi Mezhebine göre süzülüyor ve sıralanıyor...");
   hideErr(); hidePopup();
   
-  // Virgül, nokta veya noktalı virgüllere göre maddeleri ayır
-  let rawIngredients = ingredientsText.split(/[,.\n;()]+/);
+  let targetText = rawText;
+
+  // DOKUNUŞ 1: KAMERADAN GELEN METİNLERDE SADECE "INGREDIENTS / İÇİNDEKİLER" KISMINI SEÇ
+  if (applyOcrFilter) {
+    const filterKeywords = [
+      'içindekiler', 'icindekiler', 'ingredients', 'ingredient', 
+      'zutaten', 'composition', 'gindekiler', 'indekiler'
+    ];
+    let lowerText = rawText.toLowerCase();
+    let foundIndex = -1;
+    
+    for (let kw of filterKeywords) {
+      let idx = lowerText.indexOf(kw);
+      if (idx !== -1) {
+        foundIndex = idx + kw.length;
+        break;
+      }
+    }
+    
+    if (foundIndex !== -1) {
+      targetText = rawText.substring(foundIndex); // Sadece içindekiler kelimesinden sonrasını al
+    }
+  }
+
+  let rawIngredients = targetText.split(/[,.\n;()]+/);
   let parsedIngredients = [];
   let globalVerdict = 'helal';
 
   rawIngredients.forEach(item => {
-    let cleanItem = item.trim().replace(/[*\[\]]/g, '');
+    let cleanItem = item.trim().replace(/[*\[\]:]/g, '');
     if (!cleanItem || cleanItem.length < 2) return;
     
     let lowerItem = cleanItem.toLowerCase();
     let matched = false;
     
-    // 1. HARAM KONTROLÜ
+    // 1. Kesin Haram Kontrolü
     for (let rule of haramRules) {
       for (let key of rule.keys) {
         if (lowerItem.includes(key)) {
-          parsedIngredients.push({original: cleanItem, name: rule.name, verdict: 'haram', why: rule.why});
+          parsedIngredients.push({original: cleanItem, name: rule.name, verdict: 'haram', why: rule.why, score: 1});
           globalVerdict = 'haram';
-          matched = true;
-          break;
+          matched = true; break;
         }
       }
       if (matched) break;
     }
     if (matched) return;
 
-    // 2. ŞÜPHELİ / DİYET KONTROLÜ
+    // 2. Şüpheli ve Filtre Kontrolü
     for (let rule of supheliRules) {
       for (let key of rule.keys) {
         if (lowerItem.includes(key)) {
           let status = 'suphelı';
           let rationale = rule.why;
 
-          // VEGAN MOD SEÇİLİYSE: Hayvansal olma ihtimali olan şüpheliler doğrudan KRİTİKLEŞİR / HARAMLAŞIR (Diyete aykırılıktan ötürü)
           if (prefMode === 'vegan') {
             status = 'haram';
-            rationale = `🌿 VEGAN FİLTRESİ AKTİF: ${rule.name} maddesinin hayvansal yağ veya dokulardan üretilme riski yüksektir. Üründe kesin vegan veya helal ibaresi yoksa Hanefi standartlarına ve vegan beslenmeye uygun değildir.`;
+            rationale = `🌿 VEGAN FİLTRESİ: ${rule.name} maddesinin hayvansal kökenli olma riski nedeniyle vegan kurallarına ve fıkha uygun görülmemiştir.`;
             globalVerdict = 'haram';
           } 
-          // VEJETARYEN MOD SEÇİLİYSE: Jelatin, Mayalar vb. et türevleri filtrelenir
           else if (prefMode === 'vegetarian' && (key.includes('gelat') || key.includes('mayasi') || key.includes('pepsin') || key.includes('rennet'))) {
             status = 'haram';
-            rationale = `🥛 VEJETARYEN FİLTRESİ AKTİF: Bu madde kesim şartı veya et/kemik özü içerebileceğinden vejetaryen kriterlerine ve onaylanmamış hayvansal kaynağı sebebiyle Hanefi fıkhına aykırıdır.`;
+            rationale = `🥛 VEJETARYEN FİLTRESİ: Hayvansal kesim veya et ürünü riski nedeniyle filtreye takılmıştır.`;
             globalVerdict = 'haram';
           } else {
             if (globalVerdict !== 'haram') globalVerdict = 'suphelı';
           }
 
-          parsedIngredients.push({original: cleanItem, name: rule.name, verdict: status, why: rationale});
-          matched = true;
-          break;
+          parsedIngredients.push({original: cleanItem, name: rule.name, verdict: status, why: rationale, score: (status === 'haram' ? 1 : 2)});
+          matched = true; break;
         }
       }
       if (matched) break;
     }
     if (matched) return;
 
-    // 3. BİLİNEN TEMİZ/HELAL MADDELER VEYA DİĞERLERİ
+    // 3. Helal Maddeler
     let foundHelalKey = Object.keys(helalAçıklamalar).find(k => lowerItem.includes(k));
     if (foundHelalKey) {
       parsedIngredients.push({
-        original: cleanItem, 
-        name: cleanItem, 
-        verdict: 'helal', 
-        why: helalAçıklamalar[foundHelalKey] + " Hanefi mezhebine göre tüketilmesinde sakınca yoktur."
+        original: cleanItem, name: cleanItem, verdict: 'helal', why: helalAçıklamalar[foundHelalKey], score: 3
       });
     } else {
-      // Genel zararsız bitki, tahıl veya katkı maddeleri
       parsedIngredients.push({
-        original: cleanItem, 
-        name: cleanItem, 
-        verdict: 'helal', 
-        why: 'Bitkisel, mineral veya temel gıda maddesi olarak değerlendirilmiştir. Hanefi fıkhına göre aksine bir hayvansal/alkol şüphesi kanıtlanmadığı sürece aslen temiz ve helaldir.'
+        original: cleanItem, name: cleanItem, verdict: 'helal', why: 'Hanefi fıkhına göre aksi bir hayvansal/alkol riski kanıtlanmadıkça aslen temiz ve helaldir.', score: 3
       });
     }
   });
 
-  // Eğer hiçbir madde ayrıştırılamadıysa acil durum yedek eklemesi
   if (parsedIngredients.length === 0) {
-    parsedIngredients.push({original: ingredientsText, name: "Tüm İçerik Bloku", verdict: 'helal', why: 'Açık bir haram veya şüpheli koda rastlanmadı.'});
+    parsedIngredients.push({original: "İçerik Bloku", name: "Genel İçerik", verdict: 'helal', why: 'Açık bir sakıncalı koda rastlanmadı.', score: 3});
   }
 
-  let finalSummary = "Ürün içeriği temiz görünmektedir. Hanefi kriterlerine göre şüpheli bir koda rastlanmadı.";
+  // DOKUNUŞ 2: SIRALAMA MOTORU (ÖNCE HARAM [1], SONRA ŞÜPHELİ [2], EN SON HELAL [3])
+  parsedIngredients.sort((a, b) => a.score - b.score);
+
+  let finalSummary = "Ürün içeriği temiz görünmektedir. Hanefi kriterlerine göre sakıncalı bir madde bulunamadı.";
   if (globalVerdict === 'haram') {
     finalSummary = prefMode !== 'standard' 
-      ? `Seçtiğiniz filtreye (${prefMode.toUpperCase()}) veya Hanefi fıkhına tamamen aykırı bileşen(ler) bulundu!`
-      : "DİKKAT! Ürün içinde Hanefi mezhebine göre haram veya sakıncalı olan maddeler net olarak tespit edilmiştir.";
+      ? `Seçtiğiniz ${prefMode.toUpperCase()} filtresine veya Hanefi fıkhına aykırı bileşenler tespit edildi!`
+      : "DİKKAT! Ürün içinde Hanefi mezhebine göre haram veya tüketime uygun olmayan maddeler en üstte listelenmiştir.";
   } else if (globalVerdict === 'suphelı') {
-    finalSummary = "Ürün içerisinde kaynağı (bitkisel/hayvansal ayrımı) belirsiz e-kodları veya aromalar tespit edilmiştir. Güvenilir bir Helal Sertifikası eşliğinde tüketilmesi önerilir.";
+    finalSummary = "Ürün içerisinde kaynağı belirsiz şüpheli e-kodları yer almaktadır. Menşei ambalaj logosundan teyit edilmelidir.";
   }
 
   hideLoad();
@@ -500,25 +530,19 @@ function localAnalyze(productName, ingredientsText){
 
 function showResult(name, verdict, summary, ingredientsList){
   const icons={helal:'✅',suphelı:'⚠️',haram:'❌'};
-  const labels={helal:'HELAL GÖRÜNÜYOR',suphelı:'ŞÜPHELİ MADDELER VAR',haram:'UYGUN DEĞİL / HARAM'};
-  const descs={
-    helal:`Hanefi fıkhına ve seçilen tercihlere göre sakınca görülmedi.`,
-    suphelı:'Bileşenlerin menşei üreticiden veya sertifikadan kontrol edilmelidir.',
-    haram:'İçerisinde tüketime uygun olmayan maddeler yer almaktadır.'
-  };
+  const labels={helal:'HELAL GÖRÜNÜYOR',suphelı:'ŞÜPHELİ MADDELER VAR',haram:'UYGUN DEĞİL / SAKINCALI'};
   
   document.getElementById('v-band').className='verdict-band '+verdict;
   document.getElementById('v-icon').textContent=icons[verdict]||'❓';
   document.getElementById('v-label').textContent=labels[verdict]||verdict.toUpperCase();
   document.getElementById('v-label').className='v-label '+verdict;
-  document.getElementById('v-desc').textContent=descs[verdict]||'';
+  document.getElementById('v-desc').textContent= (verdict === 'helal' ? 'Tüketilmesinde bir sakınca görünmüyor.' : 'Detaylar ve riskli maddeler aşağıda en başta gösterilmiştir.');
   document.getElementById('r-product').textContent=name;
   document.getElementById('r-summary').textContent=summary;
 
   const listElement=document.getElementById('ing-list');
   listElement.innerHTML='';
-  
-  const tagLabels={helal:'Helal / Temiz',suphelı:'Şüpheli',haram:'Sakıncalı / Aykırı'};
+  const tagLabels={helal:'Temiz / Helal',suphelı:'Şüpheli',haram:'Aykırı'};
 
   ingredientsList.forEach(i=>{
     const row=document.createElement('div');
@@ -526,24 +550,41 @@ function showResult(name, verdict, summary, ingredientsList){
     row.innerHTML=`
       <div class="ing-top-line">
         <div class="ing-name">${i.original}</div>
-        <span class="ing-tag ${i.verdict}">${tagLabels[i.verdict]||i.verdict}</span>
+        <span class="ing-tag ${i.verdict}">${tagLabels[i.verdict]}</span>
       </div>
       <div class="ing-why">${i.why}</div>
     `;
     listElement.appendChild(row);
   });
 
+  // Çekmeceyi her yeni sonuç geldiğinde açık konuma getir
+  const container = document.getElementById('drawer-container');
+  container.classList.remove('collapsed');
+  document.getElementById('drawer-btn').textContent = "Detayları Gizle 🔼";
+
   const card=document.getElementById('result-card');
   card.classList.add('on');
   setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
-// TEMİZ, SADE VE TEK SATIRLIK GEÇMİŞ YÖNETİMİ (KİRLİLİK YAPMAZ)
+// DOKUNUŞ 3: ÇEKMECE (GİZLE/GÖSTER) FONKSİYONU
+function toggleDrawer() {
+  const container = document.getElementById('drawer-container');
+  const btn = document.getElementById('drawer-btn');
+  
+  if (container.classList.contains('collapsed')) {
+    container.classList.remove('collapsed');
+    btn.textContent = "Detayları Gizle 🔼";
+  } else {
+    container.classList.add('collapsed');
+    btn.textContent = "Detayları Göster 🔽";
+  }
+}
+
 function saveHist(name, verdict){
-  // Aynı ürünün mükerrer eklenmesini ve kirlilik oluşturmasını önle
   hist = hist.filter(item => item.name !== name);
   hist.unshift({name, verdict});
-  if(hist.length>5) hist=hist.slice(0,5); // Maksimum 5 geçmiş öğesi tutulur
+  if(hist.length>5) hist=hist.slice(0,5);
   try{localStorage.setItem('hh',JSON.stringify(hist))}catch(e){}
   renderHist();
 }
@@ -551,31 +592,23 @@ function saveHist(name, verdict){
 function renderHist(){
   if(!hist.length){document.getElementById('hist-card').style.display='none';return}
   document.getElementById('hist-card').style.display='block';
-  
   const labels={helal:'Helal',suphelı:'Şüpheli',haram:'Aykırı'};
   const container = document.getElementById('hist-list');
   container.innerHTML = '';
-  
   hist.forEach(h => {
     const row = document.createElement('div');
     row.className = 'hist-row';
     row.innerHTML = `
       <div class="hist-dot ${h.verdict}"></div>
       <div class="hist-name">${h.name}</div>
-      <div class="hist-v ${h.verdict}">${labels[h.verdict]||h.verdict}</div>
+      <div class="hist-v ${h.verdict}">${labels[h.verdict]}</div>
     `;
-    // Geçmiş öğesine tıklanınca manuel aramaya ismini atsın kolaylık olsun
-    row.onclick = () => {
-      document.getElementById('ing-text').value = h.name;
-      goTab('photo');
-    };
     container.appendChild(row);
   });
 }
 
 function clearHist(){
-  hist=[];
-  try{localStorage.setItem('hh','[]')}catch(e){}
+  hist=[]; try{localStorage.setItem('hh','[]')}catch(e){}
   document.getElementById('hist-card').style.display='none';
 }
 
